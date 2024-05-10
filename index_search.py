@@ -30,7 +30,7 @@ def evaluate_token(token: str, index: list[dict[str,StringGroup|str]]) -> dict[s
   match = sorted(match_list)[-1]
   return score_table, match
 
-def evaluate_query(query: str, index: list[dict[str,StringGroup|str]], config: dict) -> dict[str, float]:
+def evaluate_query(query: str, index: list[dict[str,StringGroup|str]], beta: float) -> dict[str, float]:
   # initialize score table
   score_table = {}
   match_list = []
@@ -42,7 +42,7 @@ def evaluate_query(query: str, index: list[dict[str,StringGroup|str]], config: d
     token = ''.join(list(map(kor_unicode_to_char, token))) # convert kor unicode to each characters
     token = token.lower()
     token_score_table, match = evaluate_token(token, index)
-    if match[0] < config['beta']: # consider korean/english toggle key
+    if match[0] < beta: # consider korean/english toggle key
       tkn_scr_tbl, mch = evaluate_token(reverse_kor_eng(token), index)
       if mch[0] > match[0]:
         match = mch
@@ -54,12 +54,18 @@ def evaluate_query(query: str, index: list[dict[str,StringGroup|str]], config: d
 
   return score_table, match_list
 
-def search(query: str, root: str, config: dict):
-  index = IndexBuilder.load_index(config['index_file'])
+def search(query: str,
+           root: str,
+           index_file: str='index/index.json',
+           skip_indexing: list[str]=[],
+           alpha: float=0.2,
+           beta: float=0.005):
+  index = IndexBuilder.load_index(index_file)
   if index == []:
-    IndexBuilder.build_index(root, config)
-    index = IndexBuilder.load_index(config['index_file'])
+    IndexBuilder.build_index(root, index_file, skip_indexing, alpha)
+    index = IndexBuilder.load_index(index_file)
 
-  score_table, match_list = evaluate_query(query, index, config)
-  score_list = sorted(score_table, key=lambda k: score_table[k], reverse=True)
-  return score_list, match_list
+  score_table, match_list = evaluate_query(query, index, beta)
+  filtered_table = {key: value for key, value in score_table.items() if value >= beta}
+  result = sorted(filtered_table, key=lambda k: filtered_table[k], reverse=True)
+  return result, match_list

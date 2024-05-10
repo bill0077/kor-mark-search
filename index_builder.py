@@ -1,5 +1,6 @@
 import re
 import time
+import sys
 import json
 
 from markdown_utils import get_markdown_list
@@ -27,15 +28,15 @@ class IndexBuilder:
     return index
   
   @staticmethod
-  def build_index(root: str, config: dict) -> None:
+  def build_index(root: str, index_file: str, skip_indexing: list[str], alpha: float) -> None:
     start = time.time()
     print(f'start building index for \'{root}\':')
-    for md_path in get_markdown_list(root, config):
-      IndexBuilder.add_index(md_path, config)
-    print(f'index builded: takes total {time.time()-start}s')
+    for md_path in get_markdown_list(root, skip_indexing):
+      IndexBuilder.add_index(md_path, index_file, alpha)
+    print(f'index builded: takes total {time.time()-start:.2f}s')
 
   @staticmethod
-  def add_index(markdown_path: str, config: dict) -> None:
+  def add_index(markdown_path: str, index_file: str, alpha: float) -> None:
     start = time.time()
 
     string_set: list[StringGroup] = []
@@ -48,7 +49,9 @@ class IndexBuilder:
     tokens = re.split('[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣|_|-]', markdown)
     token_len_sum = 0
     token_count = 0
-    for token in tokens:
+    for i, token in enumerate(tokens):
+      sys.stdout.write(f'\rindexing \'{markdown_path}\': {i/len(tokens)*100:.2f}%')
+      sys.stdout.flush()
       token = ''.join(list(map(kor_unicode_to_char, token))) # convert kor unicode to each characters
       token = token.lower() # do not consider casing
       if len(token) == 0:
@@ -58,7 +61,7 @@ class IndexBuilder:
       token_count += 1
       for string_group in string_set:
         distance = get_levenshtein_distance(StringGroup(token), string_group)
-        if distance / len(token) < config['alpha']:
+        if distance / len(token) < alpha:
           string_group.add_group(token)
           break
       else:
@@ -75,7 +78,7 @@ class IndexBuilder:
 
     index_json = []
     try:
-      with open(config['index_file'], 'r') as json_file:
+      with open(index_file, 'r') as json_file:
         index_json = json.load(json_file)
     except:
       pass
@@ -87,7 +90,7 @@ class IndexBuilder:
     else:
       index_json.append(new_index)
 
-    with open(config['index_file'], 'w') as json_file:
+    with open(index_file, 'w') as json_file:
       json.dump(index_json, json_file)
     
-    print(f'{markdown_path}, {token_count} tokens of average length {token_len_sum/token_count}: {time.time()-start}s')
+    print(f'\rindexing \'{markdown_path}\': 100% ({token_count} tokens of average length {token_len_sum/token_count:.2f}, {len(string_set)} groups found, {time.time()-start:.2f}s)')
