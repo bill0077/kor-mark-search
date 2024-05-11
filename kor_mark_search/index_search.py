@@ -59,7 +59,7 @@ def evaluate_query(query: str, index: list[dict[str,StringGroup|str]], beta: flo
 
 def search(query: str,
            root: str,
-           index_file: str='index/index.json',
+           index_path: str='index',
            skip_indexing: list[str]=[],
            alpha: float=0.2,
            beta: float=0.005,
@@ -68,6 +68,7 @@ def search(query: str,
   Returns a list of eligible markdowns, each tokens used in the search, and its scores.
   When there is markdown above min_results, markdowns with fitness below beta are omitted.
   If there is no index file in the given path, create a new one.'''
+  index_file = f'{index_path}/index_{root.replace("/", "_")}.json'
   index = IndexBuilder.load_index(index_file)
   if index == []:
     IndexBuilder.build_index(root, index_file, skip_indexing, alpha)

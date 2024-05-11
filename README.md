@@ -8,7 +8,19 @@ ex) '컨테이너', '컨테ㅇ너', '커테ㅣㅇ너', 'zjsxpdlsj', 'zjsxpdjs' �
 
 # 시작해보기
 ## 실행 환경 설정
-`kor-mark-search`는 외부 패키지가 필요하지 않습니다.
+`kor-mark-search`는 외부 패키지가 필요하지 않습니다. `git clone` 이후 main.py를 실행해 빠르게 시작해볼 수 있습니다.
+
+또는 `pip3 install kor-mark-search`로 설치하는 방법도 가능합니다. `import kor-mark-search`로 패키지를 import하고 `kor_mark_search.index_search.search`함수를 사용할 수 있습니다.
+
+minimal example (main.py와 동일):
+```python
+from kor_mark_search.index_search import search
+
+while True:
+  query = input('query:')
+  result = search(query, 'YOUR_ROOT_PATH')
+  print(result)
+```
 
 # kor_mark_search.index_search
 ## search
@@ -20,7 +32,7 @@ ex) '컨테이너', '컨테ㅇ너', '커테ㅣㅇ너', 'zjsxpdlsj', 'zjsxpdjs' �
 쿼리를 인덱스를 기반으로 검색하는 함수입니다. 아래와 같은 매개변수가 있습니다
 - `root`: index를 생성할 마크다운들이 있는 폴더입니다. 기본은 'root'입니다.
 - `skip_indexing`: index 생성을 하지 않을 폴더의 목록입니다. 기본은 지정되어 있지 않습니다.
-- `index_file`: index 파일이 생성되는 경로입니다. 기본은 'index/index.json'입니다.
+- `index_file`: index 파일이 생성되는 경로입니다. 기본은 'index/path_to_root.json'입니다.
 - `alpha`: 서로 다른 token들이 같은 group인지 판정하는 기준치입니다. 값이 높을수록 더욱 많은 token이 하나의 group으로 예상합니다.
 - `beta`: 한영키가 뒤바뀐채로 입력되었는지 판정하는 기준치입니다. 값이 높을수록 한영키 오타를 높게 예상합니다.
 - `min_results`: 최소 min_results 만큼의 마크다운들을 반환합니다. 그 이상의 마크다운은 적합도가 `beta`를 넘어야만 반환됩니다.
@@ -28,17 +40,17 @@ ex) '컨테이너', '컨테ㅇ너', '커테ㅣㅇ너', 'zjsxpdlsj', 'zjsxpdjs' �
 # kor_mark_search.index_builder
 ## load_index
 인덱스를 파일로부터 로드해오는 함수입니다.
-`path`: 로드해올 파일의 경로
+- `path`: 로드해올 파일의 경로
 
 ## build_index
 root 폴더의 인덱스를 생성하는 함수입니다.
-`root`: 인덱스를 생성할 최상위 폴더
-`index_file`: 생성한 인덱스를 저장할 파일의 경로
-`skip_indexing`: 인덱스를 생성하지 않을 폴더. 어느 위치에 있든 해당 폴더의 파일은 인덱싱되지 않습니다.
-`alpha`: 위의 `kor_mark_search.index_search.search` 에서 사용된 alpha와 동일
+- `root`: 인덱스를 생성할 최상위 폴더
+- `index_file`: 생성한 인덱스를 저장할 파일의 경로
+- `skip_indexing`: 인덱스를 생성하지 않을 폴더. 어느 위치에 있든 해당 폴더의 파일은 인덱싱되지 않습니다.
+- `alpha`: 위의 `kor_mark_search.index_search.search` 에서 사용된 alpha와 동일
 
 ## add_index
 기존의 인덱스에 새로운 마크다운을 추가하는 함수입니다. 이미 인덱싱되어있는 마크다운을 다시 `add_index`로 추가하면 해당 마크다운의 인덱스를 덮어씁니다.
-`markdown_path`: 인덱스에 추가할 마크다운의 경로
-`index_file`: 기존 인덱스 파일의 경로
-`alpha`: `build_index`의 alpha와 동일
+- `markdown_path`: 인덱스에 추가할 마크다운의 경로
+- `index_file`: 기존 인덱스 파일의 경로
+- `alpha`: `build_index`의 alpha와 동일

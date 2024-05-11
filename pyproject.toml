@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "kor-mark-search"
 version = "0.1.0"
-description = "A package suitable for searching queries in Korean-based Markdown. Includes features such as automatic typo correction"
+description = "A package suitable for searching queries in Korean-based Markdown, including features such as automatic typo correction."
 authors = ["bill0077 <<bill007tjr@gmail.com>>"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/bill0077/kor-markdown-search-engine"
-repository = "https://github.com/bill0077/kor-markdown-search-engine"
+homepage = "https://github.com/bill0077/kor-mark-search"
+repository = "https://github.com/bill0077/kor-mark-search"
 keywords = ["korean", "markdown", "search"]
 packages = [{include = "kor_mark_search"}]
 
