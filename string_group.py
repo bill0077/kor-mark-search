@@ -16,6 +16,8 @@ class StringGroup:
       self.group = group
 
   def add_group(self, string: str) -> None:
+    '''Add new string to string group. 
+    The centroid of that group, centrality, distribution is also updated'''
     # update group
     self.group.append(string)
     
@@ -46,6 +48,8 @@ class StringGroup:
         self.centrality[i] = num_max_char / len(self.group)
 
 def get_levenshtein_distance(str1: StringGroup, str2: StringGroup) -> float:
+  '''Calculate the distance between given strings.
+  Not only centroid but also centrality is considered'''
   dp = [[0 for _ in range(len(str2.centroid)+1)] for _ in range(len(str1.centroid)+1)]
   for i in range(1, len(str1.centroid)+1):
     dp[i][0] = dp[i-1][0] + str1.centrality[i-1]

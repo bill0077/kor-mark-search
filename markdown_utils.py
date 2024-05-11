@@ -1,6 +1,7 @@
 import os
 
 def get_markdown_list(root: str, skip_indexing: list[str]) -> list[str]:
+  '''Returns a list of all files excluding skip_indexing in the given root folder.'''
   file_list = []
   for path, _, files in os.walk(root):
     path = path.replace('\\', '/')

@@ -5,12 +5,15 @@ import json
 
 from markdown_utils import get_markdown_list
 from string_group import StringGroup, get_levenshtein_distance
-from unicode_converter import kor_unicode_to_char
+from unicode_converter import decompose_kor_unicode
 
 class IndexBuilder:
+  '''Class for building index'''
 
   @staticmethod
   def load_index(path: str) -> list[dict[str,StringGroup|str]]:
+    '''Load index from given path. 
+    If load fails, return empty index'''
     index = []
     try:
       with open(path, 'r', encoding='utf8') as index_file:
@@ -29,6 +32,7 @@ class IndexBuilder:
   
   @staticmethod
   def build_index(root: str, index_file: str, skip_indexing: list[str], alpha: float) -> None:
+    '''Creates an index file for root folder at index_file.'''
     start = time.time()
     print(f'start building index for \'{root}\':')
     for md_path in get_markdown_list(root, skip_indexing):
@@ -37,6 +41,9 @@ class IndexBuilder:
 
   @staticmethod
   def add_index(markdown_path: str, index_file: str, alpha: float) -> None:
+    '''Add one markdown to the index file. 
+    If the same markdown already exists, it will be overwritten. 
+    Group tokens that are differences below aplha'''
     start = time.time()
 
     string_set: list[StringGroup] = []
@@ -44,21 +51,21 @@ class IndexBuilder:
     with open(markdown_path, 'rt', encoding='utf8') as md_file:
       markdown = md_file.read()
 
-    #tokens = re.split(' |\n', markdown)
-    #tokens = re.split('[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]', markdown)
+    # Tokenize markdown based on special characters 
     tokens = re.split('[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣|_|-]', markdown)
     token_len_sum = 0
     token_count = 0
     for i, token in enumerate(tokens):
       sys.stdout.write(f'\rindexing \'{markdown_path}\': {i/len(tokens)*100:.2f}%')
       sys.stdout.flush()
-      token = ''.join(list(map(kor_unicode_to_char, token))) # convert kor unicode to each characters
+      token = ''.join(list(map(decompose_kor_unicode, token))) # convert kor unicode to each characters
       token = token.lower() # do not consider casing
       if len(token) == 0:
         continue
-
       token_len_sum += len(token)
       token_count += 1
+
+      # Group each token based on levenshtein distance.
       for string_group in string_set:
         distance = get_levenshtein_distance(StringGroup(token), string_group)
         if distance / len(token) < alpha:
@@ -67,6 +74,7 @@ class IndexBuilder:
       else:
         string_set.append(StringGroup(token))
     
+    # Make a new index for a given markdown
     new_index = {'path': markdown_path,
                  'string_set': [{
                  'centroid': str_grp.centroid,
@@ -76,6 +84,7 @@ class IndexBuilder:
                  } for str_grp in string_set
                  ]}
 
+    # Add new index part to existing index file
     index_json = []
     try:
       with open(index_file, 'r') as json_file:
@@ -90,6 +99,7 @@ class IndexBuilder:
     else:
       index_json.append(new_index)
 
+    # Save index to file
     with open(index_file, 'w') as json_file:
       json.dump(index_json, json_file)
     
