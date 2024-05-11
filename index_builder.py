@@ -5,7 +5,6 @@ import json
 
 from markdown_utils import get_markdown_list
 from string_group import StringGroup, get_levenshtein_distance
-from unicode_converter import decompose_kor_unicode
 
 class IndexBuilder:
   '''Class for building index'''
@@ -58,7 +57,6 @@ class IndexBuilder:
     for i, token in enumerate(tokens):
       sys.stdout.write(f'\rindexing \'{markdown_path}\': {i/len(tokens)*100:.2f}%')
       sys.stdout.flush()
-      token = ''.join(list(map(decompose_kor_unicode, token))) # convert kor unicode to each characters
       token = token.lower() # do not consider casing
       if len(token) == 0:
         continue

@@ -41,15 +41,14 @@ JUNGSUNG_LIST = ['ㅏ', 'ㅐ', 'ㅑ', '^ㅐ', 'ㅓ', 'ㅔ', 'ㅕ', '^ㅔ', 'ㅗ'
 # JONGSUNG_LIST = [' ', 'ㄱ', 'ㄱㄱ', 'ㄱㅅ', 'ㄴ', 'ㄴㅈ', 'ㄴㅎ', 'ㄷ', 'ㄹ', 'ㄹㄱ', 'ㄹㅁ', 'ㄹㅂ', 'ㄹㅅ', 'ㄹㅌ', 'ㄹㅍ', 'ㄹㅎ', 'ㅁ', 'ㅂ', 'ㅂㅅ', 'ㅅ', 'ㅅㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 JONGSUNG_LIST = [' ', 'ㄱ', '^ㄱ', 'ㄱㅅ', 'ㄴ', 'ㄴㅈ', 'ㄴㅎ', 'ㄷ', 'ㄹ', 'ㄹㄱ', 'ㄹㅁ', 'ㄹㅂ', 'ㄹㅅ', 'ㄹㅌ', 'ㄹㅍ', 'ㄹㅎ', 'ㅁ', 'ㅂ', 'ㅂㅅ', 'ㅅ', '^ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 
-def kor_unicode_to_char(test_keyword: str) -> str:
-  split_keyword_list = list(test_keyword)
-
+def decompose_kor_unicode(string: str) -> str:
   result = list()
-  for keyword in split_keyword_list:
+  for keyword in list(string):
     # 한글 여부 check 후 분리
-    if re.match('.*[ㄱ-ㅎㅏ-ㅣ가-힣]+.*', keyword) is not None:
-      if re.match('.*[ㄱ-ㅎㅏ-ㅣ]+.*', keyword):
-        return keyword
+    if re.match('.*[ㄱ-힣]+.*', keyword) is not None:
+      if re.match('.*[ㄱ-ㅎㅏ-ㅣ]', keyword):
+        result.append(keyword)
+        continue
       char_code = ord(keyword) - BASE_CODE
       char1 = int(char_code / CHOSUNG)
       result.append(CHOSUNG_LIST[char1])
@@ -61,16 +60,16 @@ def kor_unicode_to_char(test_keyword: str) -> str:
       else:
         result.append(JONGSUNG_LIST[char3])
     else:
-        result.append(keyword)
+      result.append(keyword)
   # result
   return(''.join(result))
 
-def reverse_kor_eng(test_keyword: str) -> str:
+def reverse_kor_eng(string: str) -> str:
   kor_english_key = {'q':'ㅂ', 'w':'ㅈ', 'e':'ㄷ', 'r':'ㄱ', 't':'ㅅ', 'y':'ㅛ', 'u':'ㅕ', 'i':'ㅑ', 'o':'ㅐ', 'p':'ㅔ', 'a':'ㅁ', 's':'ㄴ', 'd':'ㅇ', 'f':'ㄹ', 'g':'ㅎ', 'h':'ㅗ', 'j':'ㅓ', 'k':'ㅏ', 'l':'ㅣ', 'z':'ㅋ', 'x':'ㅌ', 'c':'ㅊ', 'v':'ㅍ', 'b':'ㅠ', 'n':'ㅜ', 'm':'ㅡ'}
   kor_english_key.update({v: k for k, v in kor_english_key.items()})
 
   result = ''
-  for ch in test_keyword:
+  for ch in string:
     if ch in kor_english_key:
       result += kor_english_key[ch]
     else:

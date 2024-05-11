@@ -2,7 +2,7 @@ import math
 
 from index_builder import IndexBuilder
 from string_group import StringGroup, get_levenshtein_distance
-from unicode_converter import decompose_kor_unicode, reverse_kor_eng
+from unicode_converter import reverse_kor_eng
 
 def evaluate_token(token: str, index: list[dict[str,StringGroup|str]]) -> dict[str,float]:
   '''Evaluate how suitable a given token is for each markdown.'''
@@ -21,7 +21,9 @@ def evaluate_token(token: str, index: list[dict[str,StringGroup|str]]) -> dict[s
 
     # Evaluate every markdowns based on the most appropriate group
     score =  (2 ** (-15*min_distance)) * math.log1p(len(min_group.group))
-    score_table[sub_index['path']] = score
+    score_table[sub_index['path']] = {}
+    score_table[sub_index['path']]['score'] = score
+    score_table[sub_index['path']]['elems'] = min_group.get_elems()
     match_list.append((score, min_group.centroid))
 
   match = sorted(match_list)[-1]
@@ -33,12 +35,13 @@ def evaluate_query(query: str, index: list[dict[str,StringGroup|str]], beta: flo
   score_table = {}
   match_list = []
   for sub_index in index:
-    score_table[sub_index['path']] = 0
+    score_table[sub_index['path']] = {}
+    score_table[sub_index['path']]['score'] = 0
+    score_table[sub_index['path']]['elems'] = []
 
   # Tokenize queries based on whitespace
   tokens = query.split()
   for token in tokens:
-    token = ''.join(list(map(decompose_kor_unicode, token))) # convert kor unicode to each characters
     token = token.lower()
     token_score_table, match = evaluate_token(token, index)
     if match[0] < beta: # consider korean/english toggle key
@@ -47,8 +50,9 @@ def evaluate_query(query: str, index: list[dict[str,StringGroup|str]], beta: flo
         match = mch
         token_score_table = tkn_scr_tbl
 
-    for path, score in token_score_table.items():
-      score_table[path] += score
+    for key, value in token_score_table.items():
+      score_table[key]['score'] += value['score']
+      score_table[key]['elems'] += value['elems']
     match_list.append(match)
 
   return score_table, match_list
@@ -58,10 +62,11 @@ def search(query: str,
            index_file: str='index/index.json',
            skip_indexing: list[str]=[],
            alpha: float=0.2,
-           beta: float=0.005):
+           beta: float=0.005,
+           min_results: int=5):
   '''Search function that searches the markdown that best matches the query using a given index file.
   Returns a list of eligible markdowns, each tokens used in the search, and its scores.
-  Markdown with fitness below beta is omitted.
+  When there is markdown above min_results, markdowns with fitness below beta are omitted.
   If there is no index file in the given path, create a new one.'''
   index = IndexBuilder.load_index(index_file)
   if index == []:
@@ -69,6 +74,15 @@ def search(query: str,
     index = IndexBuilder.load_index(index_file)
 
   score_table, match_list = evaluate_query(query, index, beta)
-  filtered_table = {key: value for key, value in score_table.items() if value >= beta}
-  result = sorted(filtered_table, key=lambda k: filtered_table[k], reverse=True)
+  sorted_score = dict(sorted(score_table.items(), key=lambda item: item[1]['score'], reverse=True))
+  result = []
+  for key, value in sorted_score.items():
+    score = {'path': key}
+    score.update(value)
+    if len(result) < min_results:
+      result.append(score)
+    elif value['score'] >= beta:
+      result.append(score)
+    else:
+      break
   return result, match_list

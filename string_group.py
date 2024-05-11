@@ -1,3 +1,5 @@
+from unicode_converter import decompose_kor_unicode
+
 class StringGroup:
 
   def __init__(self, 
@@ -5,9 +7,10 @@ class StringGroup:
                centrality: list[float]=None, 
                distribution: list[dict[str,int]]=None, 
                group: list[str]=None):
-    self.centroid = string
-    self.centrality = [1 for _ in range(len(string))]
-    self.distribution = [{ch: 1} for ch in string]
+    de_string = decompose_kor_unicode(string)
+    self.centroid = de_string
+    self.centrality = [1 for _ in range(len(de_string))]
+    self.distribution = [{ch: 1} for ch in de_string]
     self.group = [string]
 
     if distribution and centrality and group:
@@ -20,6 +23,7 @@ class StringGroup:
     The centroid of that group, centrality, distribution is also updated'''
     # update group
     self.group.append(string)
+    string = decompose_kor_unicode(string)
     
     # update distribution
     for i in range(len(string)):
@@ -46,6 +50,16 @@ class StringGroup:
         self.centrality.append(num_max_char / len(self.group))
       else:
         self.centrality[i] = num_max_char / len(self.group)
+
+  def get_elems(self) -> list[str]:
+    '''Returns the elements of the string group sorted in order of greatest number.
+    Copies are removed'''
+    count = {}
+    for group in self.group:
+      count[group] = count.get(group, 0) + 1
+    sorted_elems = sorted(count, key=lambda x: count[x], reverse=True)
+    unique_elems = list(dict.fromkeys(sorted_elems))
+    return unique_elems
 
 def get_levenshtein_distance(str1: StringGroup, str2: StringGroup) -> float:
   '''Calculate the distance between given strings.
