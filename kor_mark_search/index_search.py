@@ -1,8 +1,8 @@
 import math
 
-from index_builder import IndexBuilder
-from string_group import StringGroup, get_levenshtein_distance
-from unicode_converter import reverse_kor_eng
+from kor_mark_search.index_builder import IndexBuilder
+from kor_mark_search.string_group import StringGroup, get_levenshtein_distance
+from kor_mark_search.unicode_converter import reverse_kor_eng
 
 def evaluate_token(token: str, index: list[dict[str,StringGroup|str]]) -> dict[str,float]:
   '''Evaluate how suitable a given token is for each markdown.'''

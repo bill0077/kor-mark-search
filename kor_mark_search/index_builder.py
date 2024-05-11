@@ -3,8 +3,8 @@ import time
 import sys
 import json
 
-from markdown_utils import get_markdown_list
-from string_group import StringGroup, get_levenshtein_distance
+from kor_mark_search.markdown_utils import get_markdown_list
+from kor_mark_search.string_group import StringGroup, get_levenshtein_distance
 
 class IndexBuilder:
   '''Class for building index'''

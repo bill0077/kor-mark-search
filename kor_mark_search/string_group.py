@@ -1,4 +1,4 @@
-from unicode_converter import decompose_kor_unicode
+from kor_mark_search.unicode_converter import decompose_kor_unicode
 
 class StringGroup:
 
